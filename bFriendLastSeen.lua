@@ -70,7 +70,7 @@ function GetFriendInfoString(name)
 
         local friendInfo = g_FriendsInfo[g_FriendsMap[name]]
         local lastSeenString = "\n\tLast seen: <unknown>"
-        local zoneString = "\n\tZone: <unknown>"
+        local zoneString = ""
 
         if (friendInfo.last_seen_at) then
             local lastSeenInfo = Time.GetFullDate(friendInfo.last_seen_at) .. " " .. Time.GetTimeString(friendInfo.last_seen_at)
@@ -79,6 +79,7 @@ function GetFriendInfoString(name)
 
         if (friendInfo.last_zone_id) then
             local zoneInfo = Game.GetZoneInfo(friendInfo.last_zone_id)
+            zoneString = "\n\tZone: <unknown>"
 
             if (zoneInfo.main_title) then
                 zoneString = unicode.gsub(zoneString, "<unknown>", zoneInfo.main_title)
