@@ -8,8 +8,8 @@
     <Info
         title="bFriendLastSeen"
         author="BurstBiscuit"
-        description=""
-        url=""
+        description="Allows you to see the last seen time of friends"
+        url="https://bitbucket.org/0x4D61696B/bfriendlastseen"
         uiVersion="1000"
     />
 
