@@ -6,6 +6,7 @@
 require "math"
 require "table"
 require "unicode"
+
 require "lib/lib_Callback2"
 require "lib/lib_ChatLib"
 require "lib/lib_Debug"
@@ -19,7 +20,7 @@ Debug.EnableLogging(false)
 --  Variables
 -- =============================================================================
 
-local g_FriendsMap = {}
+local g_FriendsMap  = {}
 local g_FriendsInfo = {}
 local CB2_PrintDebugInfo
 
@@ -37,28 +38,21 @@ end
  --  "3 days, 13 hours, 48 seconds"
   ]]
 function GetTimeDifferenceString(timestamp)
-    local now = tonumber(System.GetLocalUnixTime())
-    local times = {86400, 3600, 60, 1}
-    local words = {"day", "hour", "minute", "second"}
-    local diff = now - timestamp
-    local str = ""
-    local s = function(c) if (c > 1) then return "s" else return "" end end
+    local times         = {86400, 3600,   60,       1}
+    local words         = {"day", "hour", "minute", "second"}
+    local difference    = tonumber(System.GetElapsedUnixTime(timestamp))
+    local text          = ""
 
-    for k, v in pairs(times) do
-        local val = math.floor(diff / v)
+    for k, seconds in pairs(times) do
+        local value = math.floor(difference / seconds)
+        difference = difference % seconds
 
-        if (val and val > 0) then
-            if (str ~= "") then
-                str = str .. ", "
-            end
-
-            str = str .. val .. " " .. words[k] .. s(val)
+        if (value and value > 0) then
+            text = text .. value .. " " .. words[k] .. (value > 1 and "s" or "") .. (difference > 0 and ", " or "")
         end
-
-        diff = diff % v
     end
 
-    return str
+    return text
 end
 
 --[[
@@ -68,18 +62,18 @@ function GetFriendInfoString(name)
     if (name and g_FriendsMap[name]) then
         Debug.Table("friendInfo", g_FriendsInfo[g_FriendsMap[name]])
 
-        local friendInfo = g_FriendsInfo[g_FriendsMap[name]]
-        local lastSeenString = "\n\tLast seen: <unknown>"
-        local zoneString = ""
+        local friendInfo        = g_FriendsInfo[g_FriendsMap[name]]
+        local lastSeenString    = "\n\tLast seen: <unknown>"
+        local zoneString        = ""
 
         if (friendInfo.last_seen_at) then
-            local lastSeenInfo = Time.GetFullDate(friendInfo.last_seen_at) .. " " .. Time.GetTimeString(friendInfo.last_seen_at)
-            lastSeenString = unicode.gsub(lastSeenString, "<unknown>", lastSeenInfo .. " (" .. GetTimeDifferenceString(friendInfo.last_seen_at) .. " ago)")
+            local lastSeenInfo  = Time.GetFullDate(friendInfo.last_seen_at) .. " " .. Time.GetTimeString(friendInfo.last_seen_at)
+            lastSeenString      = unicode.gsub(lastSeenString, "<unknown>", lastSeenInfo .. " (" .. GetTimeDifferenceString(friendInfo.last_seen_at) .. " ago)")
         end
 
         if (friendInfo.last_zone_id) then
-            local zoneInfo = Game.GetZoneInfo(friendInfo.last_zone_id)
-            zoneString = "\n\tZone: <unknown>"
+            local zoneInfo  = Game.GetZoneInfo(friendInfo.last_zone_id)
+            zoneString      = "\n\tZone: <unknown>"
 
             if (zoneInfo.main_title) then
                 zoneString = unicode.gsub(zoneString, "<unknown>", zoneInfo.main_title)
@@ -115,10 +109,10 @@ end
   ]]
 function OnComponentLoad()
     LIB_SLASH.BindCallback({
-        slash_list = "bfriendlastseen, bfls",
-        description = "bFriendLastSeen",
-        func = OnSlashCommand,
-        autocomplete_name = 1
+        slash_list          = "bfriendlastseen, bfls",
+        description         = "bFriendLastSeen",
+        func                = OnSlashCommand,
+        autocomplete_name   = 1
     })
 
     CB2_PrintDebugInfo = Callback2.Create()
@@ -135,8 +129,9 @@ function OnFriendsLoaded(args)
         for _, friend in pairs(args.friends) do
             if (friend.status_type and friend.status_type == "FRIEND") then
                 if (friend.player_name) then
-                    g_FriendsInfo[friend.unique_name] = friend
+                    g_FriendsInfo[friend.unique_name]           = friend
                     g_FriendsMap[normalize(friend.player_name)] = friend.unique_name
+
                 else
                     Debug.Warn("Missing player_name:", friend)
                 end
@@ -147,6 +142,7 @@ function OnFriendsLoaded(args)
         if (#args.friends <= tonumber(System.GetCvar("friends_list.per_page"))) then
             if (CB2_PrintDebugInfo:Pending()) then
                 CB2_PrintDebugInfo:Reschedule(1)
+
             else
                 CB2_PrintDebugInfo:Schedule(1)
             end
@@ -162,8 +158,9 @@ function OnFriendAdded(args)
 
     if (args and args.unique_name and args.player_name) then
         Debug.Log("Adding friend info and mapping:", args.unique_name)
-        g_FriendsMap[normalize(args.player_name)] = args.unique_name
-        g_FriendsInfo[args.unique_name] = {}
+
+        g_FriendsMap[normalize(args.player_name)]   = args.unique_name
+        g_FriendsInfo[args.unique_name]             = {}
     end
 end
 
@@ -175,8 +172,9 @@ function OnFriendRemoved(args)
 
     if (args and args.unique_name and args.player_name) then
         Debug.Log("Removing friend info and mapping:", args.unique_name)
-        g_FriendsMap[normalize(args.player_name)] = nil
-        g_FriendsInfo[args.unique_name] = nil
+
+        g_FriendsMap[normalize(args.player_name)]   = nil
+        g_FriendsInfo[args.unique_name]             = nil
     end
 end
 
@@ -193,13 +191,17 @@ function OnFriendStatusChanged(args)
         if (g_FriendsMap[args.unique_name] and onlineInfo) then
             -- Update information from online friend
             Debug.Log("Updating friend info for online friend:", args.unique_name)
-            g_FriendsInfo[g_FriendsMap[args.unique_name]].player_name = onlineInfo.player_name
-            g_FriendsInfo[g_FriendsMap[args.unique_name]].last_seen_at = tonumber(System.GetLocalUnixTime())
-            g_FriendsInfo[g_FriendsMap[args.unique_name]].last_zone_id = onlineInfo.zone
+
+            g_FriendsInfo[g_FriendsMap[args.unique_name]].player_name   = onlineInfo.player_name
+            g_FriendsInfo[g_FriendsMap[args.unique_name]].last_seen_at  = tonumber(System.GetLocalUnixTime())
+            g_FriendsInfo[g_FriendsMap[args.unique_name]].last_zone_id  = onlineInfo.zone
+
         elseif (g_FriendsMap[args.unique_name]) then
             -- Update last seen timestamp
             Debug.Log("Updating friend info for offline friend:", args.unique_name)
-            g_FriendsInfo[g_FriendsMap[args.unique_name]].last_seen_at = tonumber(System.GetLocalUnixTime())
+
+            g_FriendsInfo[g_FriendsMap[args.unique_name]].last_seen_at  = tonumber(System.GetLocalUnixTime())
+
         else
             Debug.Warn("No information for friend:", args)
         end

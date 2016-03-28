@@ -14,10 +14,10 @@
     />
 
     <Events>
-        <Event name="ON_COMPONENT_LOAD"         bind="OnComponentLoad" />
-        <Event name="ON_FRIENDS_LOADED"         bind="OnFriendsLoaded" />
-        <Event name="ON_FRIEND_ADDED"           bind="OnFriendAdded" />
-        <Event name="ON_FRIEND_REMOVED"         bind="OnFriendRemoved" />
-        <Event name="ON_FRIEND_STATUS_CHANGED"  bind="OnFriendStatusChanged" />
+        <Event name="ON_COMPONENT_LOAD"         bind="OnComponentLoad"          />
+        <Event name="ON_FRIENDS_LOADED"         bind="OnFriendsLoaded"          />
+        <Event name="ON_FRIEND_ADDED"           bind="OnFriendAdded"            />
+        <Event name="ON_FRIEND_REMOVED"         bind="OnFriendRemoved"          />
+        <Event name="ON_FRIEND_STATUS_CHANGED"  bind="OnFriendStatusChanged"    />
     </Events>
 </Component>
