@@ -141,10 +141,10 @@ function OnFriendsLoaded(args)
         -- make sure to only print debug info once when <= 50 results, another page might still come in
         if (#args.friends <= tonumber(System.GetCvar("friends_list.per_page"))) then
             if (CB2_PrintDebugInfo:Pending()) then
-                CB2_PrintDebugInfo:Reschedule(1)
+                CB2_PrintDebugInfo:Reschedule(0.5)
 
             else
-                CB2_PrintDebugInfo:Schedule(1)
+                CB2_PrintDebugInfo:Schedule(0.5)
             end
         end
     end
@@ -193,14 +193,14 @@ function OnFriendStatusChanged(args)
             Debug.Log("Updating friend info for online friend:", args.unique_name)
 
             g_FriendsInfo[g_FriendsMap[args.unique_name]].player_name   = onlineInfo.player_name
-            g_FriendsInfo[g_FriendsMap[args.unique_name]].last_seen_at  = tonumber(System.GetLocalUnixTime())
+            g_FriendsInfo[g_FriendsMap[args.unique_name]].last_seen_at  = System.GetLocalUnixTime()
             g_FriendsInfo[g_FriendsMap[args.unique_name]].last_zone_id  = onlineInfo.zone
 
         elseif (g_FriendsMap[args.unique_name]) then
             -- Update last seen timestamp
             Debug.Log("Updating friend info for offline friend:", args.unique_name)
 
-            g_FriendsInfo[g_FriendsMap[args.unique_name]].last_seen_at  = tonumber(System.GetLocalUnixTime())
+            g_FriendsInfo[g_FriendsMap[args.unique_name]].last_seen_at  = System.GetLocalUnixTime()
 
         else
             Debug.Warn("No information for friend:", args)
